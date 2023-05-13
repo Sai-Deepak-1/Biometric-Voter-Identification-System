@@ -92,15 +92,18 @@ def gen_frames():
 
         ret, buffer = cv2.imencode('.jpg', img)
         frame = buffer.tobytes()
-        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        yield b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n'
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/video_feed')
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 @app.route('/process', methods=['POST'])
 def process():
@@ -136,9 +139,11 @@ def process():
         else:
             flash('No face detected in the uploaded image!')
             return render_template('index.html')
-    
+
     flash('Error processing the file!')
     return render_template('index.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -151,15 +156,20 @@ def login():
             flash('Invalid login credentials!', 'error')
 
     return render_template('login.html')
+
+
 @app.route('/voted_persons')
 def voted_persons_list():
     return render_template('voted_persons.html', voted_persons=voterList)
+
+
 def draw_square(frame, coordinates):
     top, right, bottom, left = coordinates
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
 
+
 def process_frame(frame):
-    rgb_frame = frame[:, :, ::-1] # Convert BGR frame to RGB
+    rgb_frame = frame[:, :, ::-1]  # Convert BGR frame to RGB
 
     # Find faces in the frame
     face_locations = face_recognition.face_locations(rgb_frame)
@@ -190,6 +200,7 @@ def process_frame(frame):
         draw_square(frame, (top, right, bottom, left))
 
     return frame
-if name == 'main':
-    app.run(debug=True)
 
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0",debug=True)
