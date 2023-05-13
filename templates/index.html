@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Biometric Voter Validation System</title>
+</head>
+<body>
+    <h1>Biometric Voter Validation System</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <div class="video-container">
+        <img src="{{ url_for('video_feed') }}">
+    </div>
+</body>
+</html>

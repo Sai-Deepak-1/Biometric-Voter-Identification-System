@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voted Persons</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Voted Persons</h1>
+    <table>
+        <tr>
+            <th>Serial No.</th>
+            <th>Name</th>
+        </tr>
+        {% for index, person in enumerate(voted_persons) %}
+            <tr>
+                <td>{{ index + 1 }}</td>
+                <td>{{ person }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
