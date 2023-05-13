@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, Response
+from flask import Flask, render_template, request, flash, redirect, Response
 import cv2
 import numpy as np
 import face_recognition
@@ -16,6 +16,7 @@ for vid in voterList:
     curImg = cv2.imread(f'{path}/{vid}')
     images.append(curImg)
     voterIDs.append(os.path.splitext(vid)[0])
+
 
 class Voter:
     def __init__(self, name):
@@ -40,6 +41,7 @@ class Voter:
                     self.voted = True
                     return "Voted"
 
+
 def findFaceEncodings(images):
     encodeList = []
 
@@ -49,6 +51,7 @@ def findFaceEncodings(images):
         encodeList.append(faceEncode)
     return encodeList
 
+
 knownVoterFaceEncodings = findFaceEncodings(images)
 
 cap = cv2.VideoCapture(0)
@@ -56,6 +59,7 @@ cap = cv2.VideoCapture(0)
 voters = []
 for name in voterIDs:
     voters.append(Voter(name.upper()))
+
 
 def gen_frames():
     while True:
@@ -132,10 +136,60 @@ def process():
         else:
             flash('No face detected in the uploaded image!')
             return render_template('index.html')
-
+    
     flash('Error processing the file!')
     return render_template('index.html')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # Check if the login credentials are correct (e.g., admin:admin)
+        if username == 'admin' and password == 'admin':
+            return redirect('/voted_persons')
+        else:
+            flash('Invalid login credentials!', 'error')
 
+    return render_template('login.html')
+@app.route('/voted_persons')
+def voted_persons_list():
+    return render_template('voted_persons.html', voted_persons=voterList)
+def draw_square(frame, coordinates):
+    top, right, bottom, left = coordinates
+    cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
 
-if __name__ == '__main__':
+def process_frame(frame):
+    rgb_frame = frame[:, :, ::-1] # Convert BGR frame to RGB
+
+    # Find faces in the frame
+    face_locations = face_recognition.face_locations(rgb_frame)
+    face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+
+    for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+        # Check if the detected face matches with any known voter
+        matches = face_recognition.compare_faces([voter[0] for voter in voterList], face_encoding)
+
+        if True in matches:
+            matched_voter = voterList[matches.index(True)]
+
+            # Check if the voter has already voted
+            if matched_voter[1] in voterList:
+                flash('You have already voted!', 'error')
+                continue
+
+            # Add the voted person to the list
+            voterList.append(matched_voter[1])
+
+            # Save the voter's details in a CSV file
+            with open('voted_persons.csv', 'a') as file:
+                csv_writer = csv.writer(file)
+                csv_writer.writerow([matched_voter[1]])
+
+            flash('Voting Successful!', 'success')
+
+        draw_square(frame, (top, right, bottom, left))
+
+    return frame
+if name == 'main':
     app.run(debug=True)
+
