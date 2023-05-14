@@ -1,21 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Biometric Voter Validation System</title>
-</head>
-<body>
-<h1>Biometric Voter Validation System</h1>
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
-{% endwith %}
-<div class="video-container">
-    <img src="{{ url_for('video_feed') }}">
-</div>
-</body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <h1>Biometric Voter Validation System</h1>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3">
+          {% for message in messages %}
+          <div
+            class="alert alert-{{ message.category }} text-center"
+            role="alert"
+          >
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %} {% endwith %}
+    <div class="video-container">
+      <img src="{{ url_for('video_feed') }}" />
+    </div>
+  </body>
 </html>

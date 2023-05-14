@@ -7,10 +7,14 @@ import csv
 
 app = Flask(__name__)
 
-path = 'training-images'
-images = []
-voterIDs = []
-voterList = os.listdir(path)
+ # Specify the directory path where the training images are stored
+path = 'training-images' 
+# Initialize an empty list to store the training images
+images = []  
+# Initialize an empty list to store the voter IDs
+voterIDs = []  
+# Get the list of files in the specified directory
+voterList = os.listdir(path)  
 
 for vid in voterList:
     curImg = cv2.imread(f'{path}/{vid}')
@@ -41,19 +45,21 @@ class Voter:
                     self.voted = True
                     return "Voted"
 
-
 def findFaceEncodings(images):
     encodeList = []
 
     for img in images:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        faceEncode = face_recognition.face_encodings(img)[0]
-        encodeList.append(faceEncode)
+         # Convert the image from BGR to RGB color space
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 
+        # Encode the face in the image using face_recognition library
+        faceEncode = face_recognition.face_encodings(img)[0]  
+        # Append the face encoding
+        encodeList.append(faceEncode)  
     return encodeList
 
+# Get the face encodings for the known voters' images
 
-knownVoterFaceEncodings = findFaceEncodings(images)
-
+knownVoterFaceEncodings = findFaceEncodings(images)  
 cap = cv2.VideoCapture(0)
 
 voters = []
@@ -95,16 +101,21 @@ def gen_frames():
         yield b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n'
 
 
+# Render the index.html template
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
+
+# Stream video frames as a response
 @app.route('/video_feed')
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
+
+# Process the uploaded file
 @app.route('/process', methods=['POST'])
 def process():
     if 'file' not in request.files:
@@ -120,9 +131,10 @@ def process():
     if file:
         file_path = os.path.join(path, file.filename)
         file.save(file_path)
-
-        unknown_image = face_recognition.load_image_file(file_path)
-        unknown_encoding = face_recognition.face_encodings(unknown_image)
+         # Load the uploaded image
+        unknown_image = face_recognition.load_image_file(file_path) 
+         # Encode the face in the image
+        unknown_encoding = face_recognition.face_encodings(unknown_image) 
 
         if len(unknown_encoding) > 0:
             unknown_encoding = unknown_encoding[0]
@@ -144,11 +156,14 @@ def process():
     return render_template('index.html')
 
 
+
+# Handle the login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+
         # Check if the login credentials are correct (e.g., admin:admin)
         if username == 'admin' and password == 'admin':
             return redirect('/voted_persons')
@@ -158,18 +173,23 @@ def login():
     return render_template('login.html')
 
 
+
+# Render the list of voted persons
 @app.route('/voted_persons')
 def voted_persons_list():
     return render_template('voted_persons.html', voted_persons=voterList)
 
 
+
+# Function to draw a square around a face in a frame
 def draw_square(frame, coordinates):
     top, right, bottom, left = coordinates
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
 
-
+# Function to process a frame
 def process_frame(frame):
-    rgb_frame = frame[:, :, ::-1]  # Convert BGR frame to RGB
+    # Convert BGR frame to RGB
+    rgb_frame = frame[:, :, ::-1]
 
     # Find faces in the frame
     face_locations = face_recognition.face_locations(rgb_frame)
@@ -184,7 +204,12 @@ def process_frame(frame):
 
             # Check if the voter has already voted
             if matched_voter[1] in voterList:
-                flash('You have already voted!', 'error')
+                flash('You have already voted!', 'warning')
+                continue
+
+            # Check if the voter is a registered voter
+            if matched_voter[1] not in voterIDs:
+                flash('You are not a registered voter!', 'danger')
                 continue
 
             # Add the voted person to the list
@@ -195,12 +220,13 @@ def process_frame(frame):
                 csv_writer = csv.writer(file)
                 csv_writer.writerow([matched_voter[1]])
 
-            flash('Voting Successful!', 'success')
+            flash('You May Go For Voting!', 'success')
 
         draw_square(frame, (top, right, bottom, left))
 
     return frame
 
-
+# Run Flask application on server
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",debug=True)
+    app.run(host="0.0.0.0", debug=True)
+

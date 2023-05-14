@@ -1,24 +1,32 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
+  text-align: center;
+  background-color: #f8f9fa;
 }
 
 h1 {
-    margin-bottom: 20px;
-}
-
-.messages {
-    color: red;
-    list-style: none;
-    padding: 0;
+  color: #343a40;
+  margin-top: 50px;
 }
 
 .video-container {
-    width: 640px;
-    margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
 }
 
 .video-container img {
-    width: 100%;
-    border: 2px solid green;
+  max-width: 100%;
+  height: auto;
+  border: 5px solid #343a40;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+
+.container {
+  margin-top: 20px;
+}
+
+.alert {
+  margin-bottom: 10px;
 }

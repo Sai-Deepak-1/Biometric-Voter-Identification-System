@@ -1,21 +1,40 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Voted Persons</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </head>
+  <body>
     <h1>Voted Persons</h1>
-    <table>
-        <tr>
-<!--            <th>Serial No.</th>-->
-            <th>Name</th>
-        </tr>
-        {% for person in voted_persons %}
-            <tr>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Serial No.</th>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for person in voted_persons %}
+              <tr>
+                <td>{{ loop.index }}</td>
                 <td>{{ person }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-</body>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>

@@ -1,23 +1,50 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Login</title>
-</head>
-<body>
-<h1>Login</h1>
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
-{% endwith %}
-<form action="/login" method="post">
-    <input type="text" name="username" placeholder="Username" required><br>
-    <input type="password" name="password" placeholder="Password" required><br>
-    <input type="submit" value="Login">
-</form>
-</body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <h1>Login</h1>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3">
+          {% for message in messages %}
+          <div
+            class="alert alert-{{ message.category }} text-center"
+            role="alert"
+          >
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %} {% endwith %}
+    <form action="/login" method="post">
+      <input
+        type="text"
+        name="username"
+        placeholder="Username"
+        required
+      /><br />
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        required
+      /><br />
+      <input type="submit" value="Login" />
+      <input type="reset" value="Reset" />
+    </form>
+  </body>
 </html>
