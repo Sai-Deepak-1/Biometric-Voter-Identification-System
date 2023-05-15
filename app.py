@@ -7,14 +7,17 @@ import csv
 
 app = Flask(__name__)
 
- # Specify the directory path where the training images are stored
-path = 'training-images' 
+# Specify the directory path where the training images are stored
+path = 'training-images'
 # Initialize an empty list to store the training images
-images = []  
+images = []
 # Initialize an empty list to store the voter IDs
-voterIDs = []  
+voterIDs = []
 # Get the list of files in the specified directory
-voterList = os.listdir(path)  
+voterList = os.listdir(path)
+
+current_user = None
+app.static_folder = 'static'
 
 for vid in voterList:
     curImg = cv2.imread(f'{path}/{vid}')
@@ -45,29 +48,32 @@ class Voter:
                     self.voted = True
                     return "Voted"
 
+
 def findFaceEncodings(images):
     encodeList = []
 
     for img in images:
-         # Convert the image from BGR to RGB color space
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 
+        # Convert the image from BGR to RGB color space
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # Encode the face in the image using face_recognition library
-        faceEncode = face_recognition.face_encodings(img)[0]  
+        faceEncode = face_recognition.face_encodings(img)[0]
         # Append the face encoding
-        encodeList.append(faceEncode)  
+        encodeList.append(faceEncode)
     return encodeList
+
 
 # Get the face encodings for the known voters' images
 
-knownVoterFaceEncodings = findFaceEncodings(images)  
+knownVoterFaceEncodings = findFaceEncodings(images)
 cap = cv2.VideoCapture(0)
 
 voters = []
 for name in voterIDs:
     voters.append(Voter(name.upper()))
 
-
 def gen_frames():
+    global current_user
+
     while True:
         success, img = cap.read()
         imgS = cv2.resize(img, (0, 0), None, 0.25, 0.25)
@@ -84,6 +90,8 @@ def gen_frames():
 
             if matches[matchIndex]:
                 voter = voters[matchIndex]
+                current_user = voter.name  # Set the current recognized user
+
                 y1, x2, y2, x1 = faceLoc
                 y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
                 color = (0, 255, 0)
@@ -107,12 +115,10 @@ def index():
     return render_template('index.html')
 
 
-
 # Stream video frames as a response
 @app.route('/video_feed')
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
 
 
 # Process the uploaded file
@@ -131,10 +137,10 @@ def process():
     if file:
         file_path = os.path.join(path, file.filename)
         file.save(file_path)
-         # Load the uploaded image
-        unknown_image = face_recognition.load_image_file(file_path) 
-         # Encode the face in the image
-        unknown_encoding = face_recognition.face_encodings(unknown_image) 
+        # Load the uploaded image
+        unknown_image = face_recognition.load_image_file(file_path)
+        # Encode the face in the image
+        unknown_encoding = face_recognition.face_encodings(unknown_image)
 
         if len(unknown_encoding) > 0:
             unknown_encoding = unknown_encoding[0]
@@ -156,7 +162,6 @@ def process():
     return render_template('index.html')
 
 
-
 # Handle the login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -173,11 +178,11 @@ def login():
     return render_template('login.html')
 
 
-
 # Render the list of voted persons
 @app.route('/voted_persons')
 def voted_persons_list():
-    return render_template('voted_persons.html', voted_persons=voterList)
+    voted_persons = [voter.name for voter in voters if voter.voted]
+    return render_template('voted_persons.html', voted_persons=voted_persons, current_user=current_user)
 
 
 
@@ -185,6 +190,7 @@ def voted_persons_list():
 def draw_square(frame, coordinates):
     top, right, bottom, left = coordinates
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+
 
 # Function to process a frame
 def process_frame(frame):
@@ -226,7 +232,7 @@ def process_frame(frame):
 
     return frame
 
+
 # Run Flask application on server
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True)
-
