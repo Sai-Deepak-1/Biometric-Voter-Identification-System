@@ -17,6 +17,7 @@ voterIDs = []
 voterList = os.listdir(path)
 
 current_user = None
+
 app.static_folder = 'static'
 
 for vid in voterList:
@@ -71,6 +72,7 @@ voters = []
 for name in voterIDs:
     voters.append(Voter(name.upper()))
 
+
 def gen_frames():
     global current_user
 
@@ -104,6 +106,8 @@ def gen_frames():
                 cv2.putText(img, voter.name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
                 voter.markAsVoted()
 
+        # processed_frame = process_frame(img)
+        # ret, buffer = cv2.imencode('.jpg', processed_frame)
         ret, buffer = cv2.imencode('.jpg', img)
         frame = buffer.tobytes()
         yield b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n'
@@ -163,17 +167,23 @@ def process():
 
 
 # Handle the login page
+authenticate = False  # Global variable to track authentication
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    global authenticate  # Declare authenticate as global
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
         # Check if the login credentials are correct (e.g., admin:admin)
         if username == 'admin' and password == 'admin':
+            authenticate = True
             return redirect('/voted_persons')
         else:
-            flash('Invalid login credentials!', 'error')
+            flash('Invalid username or password', 'danger')
+            return redirect('/login')
 
     return render_template('login.html')
 
@@ -181,9 +191,14 @@ def login():
 # Render the list of voted persons
 @app.route('/voted_persons')
 def voted_persons_list():
+    if not authenticate:
+        return redirect('/access_denied')
     voted_persons = [voter.name for voter in voters if voter.voted]
     return render_template('voted_persons.html', voted_persons=voted_persons, current_user=current_user)
 
+@app.route('/access_denied')
+def access_denied():
+    return render_template('access_denied.html')
 
 
 # Function to draw a square around a face in a frame
